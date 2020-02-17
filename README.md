@@ -50,7 +50,7 @@ This repo contains FS-KTN with feature extractors using Conv64 / Conv128 in PyTo
 7. ```$ python Test_Vis_Kno.py --network Conv64 --test_nExemplars 1/5```  for testing using Vision-Knowledge Classifier. 
 
 ## Citation
-If our work is useful in your research, please cite 
+If this work is useful in your research, please cite 
 
 ```
 @InProceedings{Peng_2019_ICCV,
