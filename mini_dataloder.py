@@ -22,7 +22,7 @@ def buildLabelIndex(labels):
         label2inds[label].append(idx)
 
     return label2inds
-# 加载序列化对象文件
+
 def load_data(file):
     try:
         with open(file, 'rb') as fo:
@@ -37,7 +37,7 @@ def load_data(file):
 
 
 class MiniImageNet(data.Dataset):
-    # 初始化实例对象
+
     def __init__(self, phase='train', do_not_use_random_transf=False):
 
         self.base_folder = 'miniImagenet'
@@ -46,56 +46,47 @@ class MiniImageNet(data.Dataset):
         self.name = 'MiniImageNet_' + phase
 
         print('Loading mini ImageNet dataset - phase {0}'.format(phase))
-        # 训练阶段base类训练数据
+
         file_train_categories_train_phase = os.path.join(
             _MINI_IMAGENET_DATASET_DIR,
             'miniImageNet_category_split_train_phase_train.pickle')
-        # 验证阶段base类数据
+
         file_train_categories_val_phase = os.path.join(
             _MINI_IMAGENET_DATASET_DIR,
             'miniImageNet_category_split_train_phase_val.pickle')
-        # 测试阶段base类数据
+
         file_train_categories_test_phase = os.path.join(
             _MINI_IMAGENET_DATASET_DIR,
             'miniImageNet_category_split_train_phase_test.pickle')
-        # 验证阶段novel类数据
+
         file_val_categories_val_phase = os.path.join(
             _MINI_IMAGENET_DATASET_DIR,
             'miniImageNet_category_split_val.pickle')
-        # 测试阶段novel类数据
+
         file_test_categories_test_phase = os.path.join(
             _MINI_IMAGENET_DATASET_DIR,
             'miniImageNet_category_split_test.pickle')
-        # 训练模式
+
         if self.phase == 'train':
             # During training phase we only load the training phase images of the training categories (aka base categories).
-            # 加载训练阶段base类训练数据
             data_train = load_data(file_train_categories_train_phase)
-            # 训练数据,38400个，尺寸为(84,84,3), shape:(38400, 84, 84, 3)
             self.data = data_train['data']
-            # 数字label，38400个,相同类别相连, shape:(38400)
             self.labels = data_train['labels']
-            # 获取数字label和图像索引的键值字典 {label_num:[idx_img(0,...38399)]}
+
             self.label2ind = buildLabelIndex(self.labels)
-            # 对数字label进行排序
             self.labelIds = sorted(self.label2ind.keys())
-            # 获取数字label的数量 64
+
             self.num_cats = len(self.labelIds)
-            # 0 ~ 63
+
             self.labelIds_base = self.labelIds
-            # 64
+
             self.num_cats_base = len(self.labelIds_base)
-        # 验证或测试阶段
+
         elif self.phase == 'val' or self.phase == 'test':
             if self.phase == 'test':
                 # load data that will be used for evaluating the recognition accuracy of the base categories.
-                # 加载测试阶段base类数据,64类，19200个数据，catname2label为类别name和数字label的键值对 ['catname2label', 'labels', 'data']
                 data_base = load_data(file_train_categories_test_phase)
                 # load data that will be use for evaluating the few-shot recogniton accuracy on the novel categories.
-                # 加载测试阶段novel类数据，
-                # 20类，12000个数据，
-                # catname2label:为类别name和数字label的键值对，
-                # label2catname为对应image的all类别name
                 data_novel = load_data(file_test_categories_test_phase)
             elif self.phase == 'val':
                 # load data that will be used for evaluating the recognition accuracy of the base categories.
@@ -103,7 +94,6 @@ class MiniImageNet(data.Dataset):
                 # load data that will be use for evaluating the few-shot recogniton accuracy on the novel categories.
                 data_novel = load_data(file_val_categories_val_phase)
 
-            # 非训练阶段: 将用来val/test的novel类和base类的数据和label拼接
             self.data = np.concatenate(
                 [data_base['data'], data_novel['data']], axis=0)
             self.labels = data_base['labels'] + data_novel['labels']
@@ -126,11 +116,11 @@ class MiniImageNet(data.Dataset):
             assert (len(intersection) == 0)
         else:
             raise ValueError('Not valid phase {0}'.format(self.phase))
-        # 对图像进行转换和归一化,数值变换到[-1,1]
+
         mean_pix = [x / 255.0 for x in [120.39586422, 115.59361427, 104.54012653]]
         std_pix = [x / 255.0 for x in [70.68188272, 68.27635443, 72.54505529]]
         normalize = transforms.Normalize(mean=mean_pix, std=std_pix)
-        # 如果为测试或者验证阶段，将图像转换为tensor并归一化
+
         if (self.phase == 'test' or self.phase == 'val') or (do_not_use_random_transf == True):
             self.transform = transforms.Compose([
                 lambda x: np.asarray(x),
@@ -138,7 +128,7 @@ class MiniImageNet(data.Dataset):
                 normalize
             ])
         else:
-            # 如果在训练阶段，将图像转换为84*84，并进行随机翻转后转换为tensor
+
             self.transform = transforms.Compose([
                 transforms.RandomCrop(84, padding=8),
                 # transforms.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4),
@@ -147,7 +137,7 @@ class MiniImageNet(data.Dataset):
                 transforms.ToTensor(),
                 normalize
             ])
-    # 如果类把某个属性定义为序列，可以使用__getitem__()输出序列属性中的某个元素.
+
     def __getitem__(self, index):
         img, label = self.data[index], self.labels[index]
         # doing this so that it is consistent with all other datasets
@@ -172,23 +162,23 @@ class FewShotDataloader():
                  num_workers=4,
                  epoch_size=2000, # number of batches per epoch.
                  ):
-        # 获取数据集, 训练/测试
+
         self.dataset = dataset
-        # 获取实验阶段，训练/测试
+
         self.phase = self.dataset.phase
-        # 对nKnovel进行约束,训练模式获取基本类别的数量，测试模式获取新类的数量
+
         max_possible_nKnovel = (self.dataset.num_cats_base if self.phase=='train'
                                 else self.dataset.num_cats_novel)
         assert(nKnovel >= 0 and nKnovel < max_possible_nKnovel)
-        # 获取新类的数量(训练模式为0,测试模式为5)
+
         self.nKnovel = nKnovel
-        # 获取基本类的数量(训练模式为64，测试模式为64)
+
         max_possible_nKbase = self.dataset.num_cats_base
         nKbase = nKbase if nKbase >= 0 else max_possible_nKbase
         if self.phase=='train' and nKbase > 0:
             nKbase -= self.nKnovel
             max_possible_nKbase -= self.nKnovel
-        # 获取基本类别的数量
+
         assert(nKbase >= 0 and nKbase <= max_possible_nKbase)
         self.nKbase = nKbase
 
