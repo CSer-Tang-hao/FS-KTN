@@ -1,4 +1,7 @@
 # FS-KTN.PyTorch
+[![LICENSE](https://img.shields.io/badge/license-MIT-green)](https://github.com/CSer-Tang-hao/FS-KTN/blob/master/LICENSE)
+[![Python](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/)
+![PyTorch](https://img.shields.io/badge/pytorch-1.2.0-%237732a8)
 A simple PyTorch implementation of KTN ( Knowledge Transfer Network ) for FS ( Few-Shot Image Classification ). 
 
 (_Peng et al._, [Few-Shot Image Recognition with Knowledge Transfer](http://openaccess.thecvf.com/content_ICCV_2019/papers/Peng_Few-Shot_Image_Recognition_With_Knowledge_Transfer_ICCV_2019_paper.pdf), ICCV2019)
