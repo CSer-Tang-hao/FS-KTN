@@ -21,7 +21,7 @@ parser.add_argument('--dataset', type=str, default='miniImageNet',
 #********************* Testing Config *********************#
 parser.add_argument('--test_nKnovel', type=int, default=5, help='number of novel categories during 1-stage_base testing phase')
 parser.add_argument('--test_nKbase', type=int, default=64, help='number of base categories during 1-stage_base testing phase')
-parser.add_argument('--test_nExemplars', type=int, default=5, help='number of support examples per novel category')
+parser.add_argument('--test_nExemplars', type=int, default=1, help='number of support examples per novel category')
 parser.add_argument('--test_nTestNovel', type=int, default=15*5, help='number of query examples for all the novel category')
 parser.add_argument('--test_nTestBase', type=int, default=15*5, help='number of test examples for all the base category')
 parser.add_argument('--test_batch_size', type=int, default=1, help='number of episodes per batch')
