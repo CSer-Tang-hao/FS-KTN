@@ -36,8 +36,6 @@ print('using gpu:', '0')
 
 save_path = os.path.join(params.save_path, params.dataset, params.network)
 
-# Only for Conv64 Model
-pred_fcw = torch.load('./Models/Conv64_fc.pred')
 
 dataset_test = MiniImageNet(phase='test')
 dataloder_test = FewShotDataloader(
@@ -63,48 +61,52 @@ best_model = torch.load(os.path.join(save_path,'1_stage_best_model.pth'))
 embedding_model.load_state_dict(best_model['embedding'])
 classifier.load_state_dict(best_model['classifier'])
 
+for epoch in range(5,15):
+    # Only for Conv64 Model
+    print('Loading epoch-{}_fc.pred'.format(epoch))
+    pred_fcw = torch.load('./experiments/miniImageNet/Conv64/GCN/epoch-{}_fc.pred'.format(epoch))
 
-_, _ = [x.eval() for x in (embedding_model, classifier)]
+    _, _ = [x.eval() for x in (embedding_model, classifier)]
 
-test_accuracies_both = []
-test_accuracies_base = []
-test_accuracies_novel = []
+    test_accuracies_both = []
+    test_accuracies_base = []
+    test_accuracies_novel = []
 
-for i, batch in enumerate(tqdm(dataloder_test()), 1):
+    for i, batch in enumerate(tqdm(dataloder_test()), 1):
 
-    data_support, labels_support, data_query, labels_query, all_Kids, nKbase = [x.cuda() for x in batch]
+        data_support, labels_support, data_query, labels_query, all_Kids, nKbase = [x.cuda() for x in batch]
 
-    labels_support_one_hot = one_hot(labels_support.reshape(-1) - 64, 5).unsqueeze(dim=0)
+        labels_support_one_hot = one_hot(labels_support.reshape(-1) - 64, 5).unsqueeze(dim=0)
 
-    Kbase_ids = Variable(all_Kids[:, :nKbase].contiguous(), requires_grad=False)
-    Knovel_ids = Variable(all_Kids[:, nKbase:].contiguous(), requires_grad=False)
+        Kbase_ids = Variable(all_Kids[:, :nKbase].contiguous(), requires_grad=False)
+        Knovel_ids = Variable(all_Kids[:, nKbase:].contiguous(), requires_grad=False)
 
-    emb_data_support = embedding_model(data_support.view([-1] + list(data_support.shape[-3:])))
-    emb_data_support = emb_data_support.view(params.test_batch_size, params.test_nExemplars*params.test_nKnovel, -1)
+        emb_data_support = embedding_model(data_support.view([-1] + list(data_support.shape[-3:])))
+        emb_data_support = emb_data_support.view(params.test_batch_size, params.test_nExemplars*params.test_nKnovel, -1)
 
-    emb_data_query = embedding_model(data_query.view([-1] + list(data_query.shape[-3:])))
-    emb_data_query = emb_data_query.view(params.test_batch_size, params.test_nTestBase + params.test_nTestNovel,-1)
+        emb_data_query = embedding_model(data_query.view([-1] + list(data_query.shape[-3:])))
+        emb_data_query = emb_data_query.view(params.test_batch_size, params.test_nTestBase + params.test_nTestNovel,-1)
 
-    cls_scores = classifier(features_query=emb_data_query, Kbase_ids=Kbase_ids,
-                            Knovel_ids = Knovel_ids,pred_fcw = pred_fcw,
-                            features_support=emb_data_support, labels_support=labels_support_one_hot).view(
-        params.test_batch_size * (params.test_nTestBase + params.test_nTestNovel), -1)
+        cls_scores = classifier(features_query=emb_data_query, Kbase_ids=Kbase_ids,
+                                Knovel_ids = Knovel_ids,pred_fcw = pred_fcw,
+                                features_support=emb_data_support, labels_support=labels_support_one_hot).view(
+            params.test_batch_size * (params.test_nTestBase + params.test_nTestNovel), -1)
 
-    accuracyBoth, accuracyBase, accuracyNovel = top1accuracy_all(cls_scores, labels_query.view(-1), nKbase)
+        accuracyBoth, accuracyBase, accuracyNovel = top1accuracy_all(cls_scores, labels_query.view(-1), nKbase)
 
-    test_accuracies_both.append(accuracyBoth.item())
-    test_accuracies_base.append(accuracyBase.item())
-    test_accuracies_novel.append(accuracyNovel.item())
+        test_accuracies_both.append(accuracyBoth.item())
+        test_accuracies_base.append(accuracyBase.item())
+        test_accuracies_novel.append(accuracyNovel.item())
 
-test_acc_both = np.mean(np.array(test_accuracies_both))
-test_acc_both_ci95 = 1.96 * np.std(np.array(test_accuracies_both)) / np.sqrt(params.test_epoch_size)
+    test_acc_both = np.mean(np.array(test_accuracies_both))
+    test_acc_both_ci95 = 1.96 * np.std(np.array(test_accuracies_both)) / np.sqrt(params.test_epoch_size)
 
-test_acc_base = np.mean(np.array(test_accuracies_base))
-test_acc_base_ci95 = 1.96 * np.std(np.array(test_accuracies_base)) / np.sqrt(params.test_epoch_size)
+    test_acc_base = np.mean(np.array(test_accuracies_base))
+    test_acc_base_ci95 = 1.96 * np.std(np.array(test_accuracies_base)) / np.sqrt(params.test_epoch_size)
 
-test_acc_novel = np.mean(np.array(test_accuracies_novel))
-test_acc_novel_ci95 = 1.96 * np.std(np.array(test_accuracies_novel)) / np.sqrt(params.test_epoch_size)
+    test_acc_novel = np.mean(np.array(test_accuracies_novel))
+    test_acc_novel_ci95 = 1.96 * np.std(np.array(test_accuracies_novel)) / np.sqrt(params.test_epoch_size)
 
-print('AccuracyBoth: {:.2f} +- {:.2f} %\tAccuracyBase: {:.2f} +- {:.2f} %\tAccuracyNovel: {:.2f} +- {:.2f} %'.format(
-            test_acc_both, test_acc_both_ci95, test_acc_base, test_acc_base_ci95,test_acc_novel, test_acc_novel_ci95))
+    print('AccuracyBoth: {:.2f} +- {:.2f} %\tAccuracyBase: {:.2f} +- {:.2f} %\tAccuracyNovel: {:.2f} +- {:.2f} %'.format(
+                test_acc_both, test_acc_both_ci95, test_acc_base, test_acc_base_ci95,test_acc_novel, test_acc_novel_ci95))
 
