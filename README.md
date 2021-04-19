@@ -52,10 +52,11 @@ This repo contains FS-KTN with feature extractors using Conv64 / Conv128 in PyTo
 1. ``` git clone``` this repo.
 2. Prepare data files in ```./Datasets/MiniImagenet/```.
 3. **Set configurations** in ```Train_only_Vis.py``` ( Training / Valing Config, Model Config, Dataset/Path Config):
-4. ```$ python Train_only_Vis.py --network Conv64/128``` for training. ( tqdm package is required. Other logs are written in ```<save_dir>/train_log.txt```).
+4. ```$ python Train_only_Vis.py --network Conv64/128``` for generating the weight of Vision-based Classifier. ( tqdm package is required. Other logs are written in ```<save_dir>/train_log.txt```).
 5. ```$ python Test_only_Vis.py --network Conv64/128 --test_nExemplars 1/5```  for testing only using Vision-based Classifier (Baseline).
 6. Download the following [Knowledge Graph for MiniImageNet](https://drive.google.com/file/d/1o7URkid8r9fhmySUbwbywSq-sKnEy6jk/view?usp=sharing) into `./mini-graph` folder. ( Now we only provide generated **Knowledge Graph** for MiniImageNet，please refer to [DGP](https://github.com/yinboc/DGP/tree/master/materials)  for more details about it ).
-7. ```$ python Test_Vis_Kno.py --network Conv64 --test_nExemplars 1/5```  for testing using Vision-Knowledge Classifier. 
+7. ```$ python Train_GCN.py```  for generating the weight of Knowledge-based Classifier. 
+8. ```$ python Test_Vis_Kno.py --network Conv64 --test_nExemplars 1/5```  for testing using Vision-Knowledge Classifier. 
 
 ## Citation
 If this work is useful in your research, please cite 
