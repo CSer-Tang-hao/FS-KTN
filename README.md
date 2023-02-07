@@ -61,15 +61,26 @@ This repo contains FS-KTN with feature extractors using Conv64 / Conv128 in PyTo
 ## Citation
 If this work is useful in your research, please cite 
 
-```
-@InProceedings{Peng_2019_ICCV,
-author = {Peng, Zhimao and Li, Zechao and Zhang, Junge and Li, Yan and Qi, Guo-Jun and Tang, Jinhui},
-title = {Few-Shot Image Recognition With Knowledge Transfer},
-booktitle = {The IEEE International Conference on Computer Vision (ICCV)},
-month = {October},
-year = {2019}
-}
-```
+  ```bibtex
+     @InProceedings{Peng_2019_ICCV,
+       author = {Zhimao Peng and Zechao Li and Junge Zhang and Yan Li and Guo{-}Jun Qi and Jinhui Tang},
+       title = {Few-Shot Image Recognition With Knowledge Transfer},
+       booktitle = {{ICCV}},
+       pages = {441--449},
+       publisher = {{IEEE}},
+       year = {2019}
+    }
+  ```
+  ```bibtex
+     @article{Li_2023_TNNLS,
+       title = {Knowledge-Guided Semantic Transfer Network for Few-Shot Image Recognition},
+       author = {Li, Zechao and Tang, Hao and Peng, Zhimao and Qi, Guo-Jun and Tang, Jinhui},
+       journal = {IEEE Transactions on Neural Networks and Learning Systems},
+       year = {2023},
+       publisher = {IEEE},
+       doi = {10.1109/TNNLS.2023.3240195}
+    }
+  ```
 
 ## References
 This implementation builds upon several open-source codes. Specifically, we have modified and integrated the following codes into this repository:
